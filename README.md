@@ -14,4 +14,4 @@ npm install && npm start
 License
 --------------------------------------
 
-ZeroChess is released under the MIT License.
+Infuzed Editor is released under the MIT License.
