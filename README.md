@@ -1,7 +1,7 @@
 Infuzed Editor
 ==============
 
-A platform independent version of Infuzed Editor
+Infuzed Editor on Electron. (wip)
 
 ## Install
 

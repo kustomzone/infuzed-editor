@@ -1,0 +1,232 @@
+<html>
+<head>
+	<title>Infused Editor</title>
+	<meta name="author" content="Code Editor by Andrew Kidoo for Zeronet users">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	
+	<link rel="stylesheet" href="./app/libs/codemirror/codemirror.css">
+	<link rel="stylesheet" href="./app/libs/codemirror/monokai.css">
+	<link rel="stylesheet" href="./app/libs/codemirror/dialog.css">
+	<link rel="stylesheet" href="./app/libs/codemirror/show-hint.css">
+	<link rel="stylesheet" href="./app/libs/codemirror/tern.css">
+	<link rel="stylesheet" href="./app/libs/codemirror/inlet.css">
+	
+	<link rel="stylesheet" href="./app/css/main.css">
+	
+	<script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
+	<script src="./app/libs/codemirror/codemirror.min.js"></script>
+	<script src="./app/libs/codemirror/javascript.js"></script>
+	<script src="./app/libs/code-blast.js"></script>
+	<script src="./app/libs/spin.min.js"></script>
+	
+	<script src="./app/libs/acorn/acorn.js"></script>
+	<script src="./app/libs/acorn/acorn_loose.js"></script>
+	<script src="./app/libs/acorn/walk.js"></script>
+	
+	<script src="./app/libs/codemirror/show-hint.js"></script>
+	<script src="./app/libs/codemirror/tern-codemirror.js"></script>
+	<script src="./app/libs/codemirror/searchcursor.js"></script>
+	<script src="./app/libs/codemirror/active-line.js"></script>
+	
+	<script src="./app/libs/codemirror/search.js"></script>
+	<script src="./app/libs/codemirror/dialog.js"></script>
+	<script src="./app/libs/codemirror/comment.js"></script>
+	<script src="./app/libs/codemirror/hardwrap.js"></script>
+	<script src="./app/libs/codemirror/matchbrackets.js"></script>
+	<script src="./app/libs/codemirror/closebrackets.js"></script>
+	<script src="./app/libs/codemirror/foldcode.js"></script>
+	<script src="./app/libs/codemirror/sublime.js"></script>
+	
+	<script src="./app/libs/ternjs/polyfill.js"></script>
+	<script src="./app/libs/ternjs/signal.js"></script>
+	<script src="./app/libs/ternjs/tern.js"></script>
+	<script src="./app/libs/ternjs/def.js"></script>
+	<script src="./app/libs/ternjs/comment.js"></script>
+	<script src="./app/libs/ternjs/infer.js"></script>
+	<script src="./app/libs/ternjs/doc_comment.js"></script>
+	<script src="./app/libs/codemirror/inlet.js"></script>
+	
+	<script src="./app/js/all.js"></script>
+	
+	<script type="text/javascript"> CodeMirror.modeURL = "./app/libs/codemirror/mode/%N.js"; </script>
+	<script>if (window.module) { module = window.module; }</script>
+	
+</head>
+
+<!------------------------------------------------ BEGIN PAGE ------------------------------------------------->
+
+<body>
+	
+	
+	<header> Infused Editor &nbsp;
+		<select id="templates" onchange="load_template(this);"></select> 
+		<select id="insert_templates" onchange="insert_template(this);"></select>
+	</header>
+	
+	<!-- console -->
+	<div id="options" style="display: none; position: absolute; top: -20px; right: 110px;"> 
+		<input type="text" id="console" class="submit" size="20" value="console" style="position: absolute; top: -2px; left: -68px;">
+	</div>
+	
+	
+	<!-- stats -->
+	<div class="box" id="stats" style="display: block; opacity: 0.2; position: absolute; top: 794px; right: 16px; width: 70px; height: 70px; font-size: 50%;">
+		<div id="stats_pane" style="color: #808080;">
+		   <p>Total files: <span id="stat_total"></span></p>
+		   <p>User Files: <span id="stat_users"></span></p>
+		   <p>Private files: <span id="stat_encrypted"></span></p>
+		</div>
+	</div>
+	
+	<!-- status = code syntax errors --> 
+	<div id="status_pane" style="position: absolute; top: 543px; left: 10px; width: 40%; height: 20px; border: 1px solid #404026; background-color: #101006; color: #229922;">
+	</div>
+	
+	<!-- copyview -->
+	<div class="box" id="copyview" style="display: none; background-color: #202016; position: absolute; top: -8px; left: 50%; width: 46%; height: 486px; overflow: auto; z-index: 40;">
+		<!--div id="copyview_next" style="border: 2px solid red;"></div -->
+	</div>
+	
+	<!-- copy -->
+	<div class="box" id="copy" style="display: none; background-color: #7D6540; position: absolute; top: 100px; left: 45%; width: 130px; height: 65px; overflow: auto; z-index: 40;">
+		<!--div id="copyview_next" style="border: 2px solid red;"></div -->
+		<img src="./app/img/left-arrow.png" style="opacity: 0.5; width: 64px; height: 64px;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;" onclick="if(window.editor.getValue()){codemirror.setValue(window.editor.getValue())};"></img><img src="./app/img/right-arrow.png" style="opacity: 0.5; width: 64px; height: 64px;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;" onclick="if(codemirror.getValue()){window.editor.setValue(codemirror.getValue())};"></img>
+	</div>
+	
+	<!-- scriptview = code preview -->
+	<div class="box" id="scriptview" style="display: none; position: absolute; top: -8px; left: 50%; width: 49.6%; height: 486px; overflow: auto; z-index: 99;">
+	  <p style="font-size: 80%;">
+		<a id="scriptview_user"></a> 
+		<span id="scriptview_added"></span>
+		<span id="scriptview_size"></span> KB
+		<br><span id="scriptview_language"></span>
+		<!-- select disabled name="language" id="select_language" style="opacity: 0.5;">
+			<option value="text/javascript">JavaScript</option>
+			<option value="text/plain">Plain text</option>
+		</select -->
+		<span class="enc-indicator" id="scriptview_encrypted">
+			<img src="./app/img/padlock.svg" width="10px"/> Private
+		</span>
+	  </p>
+	  <p id="scriptview_description"></p>
+		<code><pre style="overflow-x: auto;" id="scriptview_body"></pre></code>
+	  <span style="position: absolute; top: 45px; right: 30px;">
+		<button disabled style="width: 5em; opacity: 0.5;" id="clone_button">Fork</button>&nbsp;
+		<button style="width: 5em;" id="delete_button">Delete</button>
+	  </span>
+	</div>
+	
+	<!-- main editors -->
+	<div id="container">
+		<container>
+			<editor id="script_editor"></editor>
+			<iframe id="preview"></iframe>
+		</container>
+	</div>
+	
+	<!-- (temp) hide editors -->
+	<button id="close_button" style="opacity: 0.5; width: 1.3em; height: 1.3em; position: absolute; top: 42px; right: 16px; z-index: 150; font-weight: bold; padding: 0px 3px;" onclick="toggle_visibility('container');" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;">X</button>
+	
+	
+	<!-- save -->
+	<div class="box" id="save" style="display: none; position: absolute; top: 492px; left: 54%; width: 40%; height: 75px; z-index: 3;">
+		<div id="title" style="left: 15px; font-size: 50%; color: #E0E0C0;">...</div>
+		
+		<p id="size_disp" style="display: none; float: left; font-size: 60%; padding-top: 0.2em;">
+			Used: <span id="size_current"></span>KB / <span id="size_max"></span>KB
+		</p>
+		
+		<p style="text-align: right; font-size: 60%;">
+			<span class="nobr">
+				Indent width:
+				<select name="tabwidth" id="select_tabwidth">
+					<option value="4">4</option>
+					<option value="2">2</option>
+					<option value="8">8</option>
+				</select>
+				&nbsp;
+			</span>
+			
+			<span class="nobr">
+				Indent with tab:
+				<input type="checkbox" onclick="editor_indent_space = !editor_indent_space;"/>
+				&nbsp;
+			</span>
+			
+			<span class="nobr" style="position: absolute; top: 55px; left: 20px;">
+			Language:
+			<select name="language" id="select_language">
+				<option value="text/javascript">JavaScript</option>
+				<option value="text/plain">Plain text</option>
+			</select>
+			&nbsp;
+			</span>
+			<input type="text" id="script_description" style="position: absolute; top: 4px; left: 60px; color: #606060; background-color: #101010;" placeholder="Description (optional)">
+			<button id="publish_button" style="position: absolute; top: 3px; right: 50px;">Select user...</button>
+			
+			<br>
+			<img src="./app/img/padlock.svg" width="10px">
+			<span style="cursor:pointer;" onclick="(function f(e){e.checked=!e.checked})(document.getElementById('script_encryption'))">
+			Private:</span> <input id="script_encryption" type="checkbox"/>
+			<!-- span class="enc-indicator" id="scriptview_encrypted" style="cursor:pointer;" onclick="(function f(e){e.checked=!e.checked})(document.getElementById('script_encryption'))">
+			Private :</span -->
+		</p>
+	</div>
+	
+	<!-- nav menu -->
+	<div id="menu" style="position: absolute; top: 3px; left: 325px;">
+		<!-- input type="checkbox" id="auto"/> <label>Auto-run</label --> 
+		<button id="run_button"    style="font-weight: bold; opacity: 0.8; width: 4.6em; height: 1.6em;" onclick="compileAndRun();" onmouseup=" toggle_visibility('preview');" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.8;">Run</button> 
+		<button id="new_button"    style="font-weight: bold; opacity: 0.8; width: 4.6em; height: 1.6em;" onclick="toggle_visibility('scriptview');" onmouseup="toggle_visibility('copyview');" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.8;">New</button> 
+		<!-- button id="load_button"   disabled style="font-weight: bold; opacity: 0.5; width: 4.6em; height: 1.6em;" onclick="toggle_visibility('load');">Load</button -->
+		<button id="copy_button"   style="font-weight: bold; opacity: 0.8; width: 4.6em; height: 1.6em;" onclick="toggle_visibility('copy');" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.8;">Copy</button> 
+		<button id="fork_button"   disabled style="font-weight: bold; opacity: 0.5; width: 4.6em; height: 1.6em;">Fork</button> 
+		<button id="search_button" disabled style="font-weight: bold; opacity: 0.5; width: 4.6em; height: 1.6em;">Search</button> 
+		<button id="save_button"   style="font-weight: bold; opacity: 0.8; width: 4.6em; height: 1.6em;" onclick="toggle_visibility('save');" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.8;">Save</button> 
+		<button id="about_button"  style="font-weight: bold; opacity: 0.8; width: 4.6em; height: 1.6em;" onclick="toggle_visibility('about');" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.8;">About</button>
+		   
+		<span style="border: 4px dotted #DD1010;">
+		 <a href="./">Home</a> 
+		 <a href="?new">New</a> 
+		 <a href="#" id="showlist">List</a>&nbsp;
+		</span>
+		<!-- button id="delete_button" disabled style="opacity: 0.5; width: 4.5em; height: 1.6em;">Delete</button -->
+	</div>
+	
+	<!-- load -->
+	<div id="load" style="display: none; width: 100px; height: 25px; font-size: 85%; color: #C6C765; padding-left: 10px; border: 1px solid orange; padding: 0px 0px 25px 0px;">
+	 <p>pending...</p>
+	</div>
+	
+	<!-- about -->
+	<div class="box" id="about">
+		<p style="font-size: 1.1em; color: #D4AA50;"><b>Infused Editor v0.1</b>&nbsp; by Andrew Kidoo (bot@zero)</p>
+		<h3>Credits</h3>
+		<p><a href="http://127.0.0.1:43110/1MgHVPCE1ve6QfKrgsqCURzRj72HrRWioz/">Nullpaste</a> i/o code by (nullpo@zero)</p>
+		<p><a href="https://github.com/zz85/infused-livecode">Live Code Editor</a> by Joshua Koo</p>
+		<p><a href="https://codemirror.net/">CodeMirror</a> by Marijn Haverbeke</p>
+		<p><a href="https://github.com/chentsulin/code-blast-codemirror">Code Blasting</a> by Joel Besada</p>
+		<p><a href="https://github.com/aaronwhyte/cave2d">Cave2D</a> demos by Aaron Whyte</p>
+		<p><a href="http://qake.se/demo">Voxels Demo</a> by Magnus Persson</p>
+	</div>
+
+<script>
+
+// button toggle
+function toggle_visibility(id) {
+ var e = document.getElementById(id);
+ if(e.style.display == 'block') {
+  e.style.display = 'none';
+ } else {
+  e.style.display = 'block';
+ }
+}
+
+</script>
+
+<!-- code blast canvas -->
+
+</body>
+</html>
+
